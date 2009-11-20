@@ -29,7 +29,10 @@
                            (last-name (if comma (subseq name 0 comma) nil))
                            (first-name (if comma (subseq name (+ comma 2)) name)))
                       (make-student :id id
-                                    :score (coerce score 'vector)
+                                    :score (make-array (list (length score))
+                                                       :initial-contents score
+                                                       :adjustable t
+                                                       :fill-pointer t)
                                     :last-name last-name
                                     :first-name first-name))
             and do (incf id))))
@@ -170,10 +173,15 @@ div.autocomplete ul li {
 
 (define-easy-handler (update-student-score :uri "/update-student-score")
     (id score-number score)
-  (let ((student (find-student-by-id (parse-integer id))))
-    (setf (elt (student-score student) (parse-integer score-number))
+  (let ((student (find-student-by-id (parse-integer id)))
+        (index   (parse-integer score-number)))
+    (loop while (<= (length (student-score student)) index)
+          do (vector-push-extend 0 (student-score student)))
+    (setf (elt (student-score student) index)
           (let ((*read-eval* nil))
-            (read score)))))
+            (let ((score (read-from-string score)))
+              (check-type score number)))))
+  "\"OK\"")
 
 (define-easy-handler (add-student-score :uri "/add-student-score")
     (id)
