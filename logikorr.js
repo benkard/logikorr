@@ -95,7 +95,7 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         completion.setAttribute('class', 'autocomplete');
         cell.appendChild(input);
         cell.appendChild(completion);
-        new Autocompleter.Local(input, completion, autocompleteList, { 'fullSearch' : true });
+        new Autocompleter.Local(input, completion, autocompleteList, { 'fullSearch' : true, 'partialChars': 1 });
 
         var cell = row.insertCell(1);
         makeScoreInput(cell);
