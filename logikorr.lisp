@@ -12,6 +12,8 @@
 (defvar *database* #p"/Users/mulk/Dropbox/Projekte/Logikorr/blatt3.txt")
 (defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
 
+(defvar *students* nil)
+
 (defparameter *in-locked-context-p* nil)
 
 #+(or)
@@ -205,14 +207,22 @@ div.autocomplete ul li {
       (setf (elt (student-score student) index)
             (let ((*read-eval* nil))
               (let ((score (read-from-string score)))
-                (check-type score number))))))
+                (check-type score number)
+                score))))
+    (write-database))
   "\"OK\"")
 
-(define-easy-handler (add-student-score :uri "/add-student-score")
-    (id)
-  (let ((student (find-student-by-id (parse-integer id))))
-    (vector-push-extend 0 (student-score student))
-    (1- (length (student-score student)))))
+(defun write-database ()
+  (with-data-lock ()
+    (unless *students*
+      (return-from write-database))
+    (with-open-file (out *database* :external-format :utf-8 :direction :output :if-exists :new-version #+(or) :supersede)
+      (dolist (student *students*)
+        (if (student-last-name student)
+            (format out "~&~A, ~A" (student-last-name student) (student-first-name student))
+            (format out "~&~A" (student-first-name student)))
+        (format out "~&~A" (coerce (student-score student) 'list))
+        (format out "~%~%")))))
 
 (defun start-logikorr ()
   (start (make-instance 'acceptor :port 8080)))
