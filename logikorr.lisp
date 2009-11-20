@@ -49,14 +49,6 @@
         (<:script :type "text/javascript"
                   :src "js/scriptaculous.js")
         (<:link :type "text/css" :rel "stylesheet" :href "style.css")
-        #+(or)
-        (<:link :type "text/css"
-                :rel "stylesheet"
-                :href "http://yui.yahooapis.com/2.8.0r4/build/autocomplete/assets/skins/sam/autocomplete.css")
-        #+(or)
-        (<:script :type "text/javascript"
-                  :src #+(or) "http://yui.yahooapis.com/2.8.0r4/build/yuiloader/yuiloader-min.js"
-                       "http://yui.yahooapis.com/combo?2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js&2.8.0r4/build/animation/animation-min.js&2.8.0r4/build/connection/connection-min.js&2.8.0r4/build/datasource/datasource-min.js&2.8.0r4/build/autocomplete/autocomplete-min.js&2.8.0r4/build/dragdrop/dragdrop-min.js&2.8.0r4/build/logger/logger-min.js")
         (<:script :type "text/javascript" :src "http://yui.yahooapis.com/3.0.0/build/yui/yui-min.js")
         (<:script :type "text/javascript" :src "logikorr.js"))
        (<:body
@@ -83,16 +75,6 @@
      (defvar loader)
      (defvar autocomplete-list)
      (defvar autocomplete-data)
-     ;; YUI 2 for autocompletion.
-     #+(or)
-     (setq loader (ps:new ((ps:@ *YAHOO* util *y-u-i-loader)
-                           (ps:create :require '("animation" "yahoo-dom-event" "autocomplete" "datasource")
-                                      :load-optional t
-                                      :on-success (lambda ())
-                                      :timeout 10000
-                                      :combine t))))
-     ;;(defvar autocomplete-list (ps:new (@ *YAHOO* util *local-data-source) ))
-     ;; YUI 3 for the rest.
      ((@ (*YUI*) use)
       "node-base" "io-base" "io-form" "io-queue"
       (lambda (y)
@@ -107,13 +89,6 @@
               ((@ completion set-attribute) "class" "autocomplete")
               ((@ cell append-child) input)
               ((@ cell append-child) completion)
-              ;;((@ *YAHOO* widget *auto-complete) input completion autocomplete-data)
-              #+(or)
-              (ps:new ((@ *autocompleter *local)
-                       input
-                       completion
-                       autocomplete-list
-                       (ps:create "fullSearch" t)))
               (ps:new ((@ *autocompleter *local)
                        input
                        completion
@@ -129,9 +104,8 @@
         ((@ y on) "domready" make-student-row))))
    (format nil "~%autocompleteList = ~A"
            (json:encode-json-to-string (mapcar (lambda (x) (unsplit-name (student-first-name x) (student-last-name x)))
-                                               (find-students))))
-   ;;(format nil "~%autocompleteData = new YAHOO.util.LocalDataSource(autocompleteList);")
-   ))
+                                               (find-students))))))
+
 
 (define-easy-handler (style.css :uri "/style.css") ()
   (setf (header-out :content-type) "text/css; charset=UTF-8")  
@@ -239,5 +213,5 @@ div.autocomplete ul li {
     (vector-push-extend 0 (student-score student))
     (1- (length (student-score student)))))
 
-(defun start-hunchenkorr ()
+(defun start-logikorr ()
   (start (make-instance 'acceptor :port 8080)))
