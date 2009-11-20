@@ -1,6 +1,32 @@
 var loader;
 var autocompleteList;
 YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
+    function markAsChanged(input) {
+        input.setAttribute("style", "background-color: #faa");
+    }
+
+    function markAsRegistered(input) {
+        input.setAttribute("style", "background-color: #afa");
+    }
+
+    function registerScoreInputChange(event, input, row) {
+        var id = row.getAttribute("mulk:id");
+        var inputnum = 0;
+        var inputSiblings = input.parentNode.childNodes;
+        for (; inputnum < inputSiblings.length; inputnum++) {
+            if (inputSiblings[inputnum] == input) {
+                break;
+            }
+        };
+        Y.io("update-student-score",
+             { 'on'  : { 'complete': function(id, o, args) {
+                             try { Y.log(o.responseText); Y.JSON.parse(o.responseText); }
+                             catch(e) { return null; }
+                             markAsRegistered(input);
+                         } },
+               'data': "id=" + id + "&score-number=" + inputnum + "&score=" + input.value });
+    }
+
     function makeScoreInput(cell, value) {
         var input = document.createElement('input');
         input.setAttribute('type', 'text');
@@ -11,6 +37,8 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         }
         cell.appendChild(input);
         Y.on("keyup", function(e) { ensureFreeInput(cell); }, input, Y);
+        Y.on("keyup", function(e) { markAsChanged(input); }, input, Y);
+        Y.on("change", registerScoreInputChange, input, Y, input, cell.parentNode);
         return input;
     };
 
@@ -36,6 +64,8 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
                 return null;
             };
             Y.log(student);
+
+            scoreCell.parentNode.setAttribute("mulk:id", student.id);
 
             while (scoreCell.firstChild) {
                 scoreCell.removeChild(scoreCell.firstChild);
