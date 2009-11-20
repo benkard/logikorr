@@ -27,7 +27,11 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         Y.log(scoreCell);
         function doUpdate(id, o, args) {
             var data = o.responseText;
-            var student = Y.JSON.parse(data);
+            try {
+                var student = Y.JSON.parse(data);
+            } catch (e) {
+                return null;
+            };
             Y.log(student);
 
             while (scoreCell.firstChild) {
