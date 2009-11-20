@@ -157,16 +157,16 @@ div.autocomplete ul li {
 (defun find-student-by-id (id)
   (find id (find-students) :key #'student-id))
 
-(define-easy-handler (find-student :uri "/find-student")
-    (name)
+(define-easy-handler (find-student :uri "/find-student") (name)
   (let ((student (find-student-by-name name)))
     (setf (header-out :content-type) "text/json; charset=UTF-8")
     (with-slots (id first-name last-name score) student
-       (json:encode-json-plist
-        (list :id id
-              :first-name first-name
-              :last-name last-name
-              :score score)))))
+       (with-output-to-string (*standard-output*)
+         (json:encode-json-plist
+          (list :id id
+                :first-name first-name
+                :last-name last-name
+                :score score))))))
 
 (define-easy-handler (update-student-score :uri "/update-student-score")
     (id score-number score)
