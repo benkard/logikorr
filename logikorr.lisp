@@ -1,7 +1,5 @@
 (defpackage :logikorr-ht
-  (:use #:hunchentoot #:common-lisp #+(or) #:cl-prevalence #:json #:yaclml
-        #:split-sequence #:xml-emitter)
-  (:import-from #:parenscript #:@))
+  (:use #:hunchentoot #:common-lisp #:json #:yaclml #:split-sequence #:xml-emitter))
 
 (in-package #:logikorr-ht)
 
@@ -50,7 +48,8 @@
                   :src "js/scriptaculous.js")
         (<:link :type "text/css" :rel "stylesheet" :href "style.css")
         (<:script :type "text/javascript" :src "http://yui.yahooapis.com/3.0.0/build/yui/yui-min.js")
-        (<:script :type "text/javascript" :src "logikorr.js"))
+        (<:script :type "text/javascript" :src "logikorr.js")
+        (<:script :type "text/javascript" :src "logikorr-completion-data.js"))
        (<:body
         (<:h1 "Logik I: Korrekturergebnisse")
         (<:h2 "Neue Ergebnisse")
@@ -67,44 +66,13 @@
                     (<:td (<:as-html first-name)))))))))))
 
 (define-easy-handler (logikorr.js :uri "/logikorr.js") ()
-  (ignore-errors
-    (setf (header-out :content-type) "text/javascript; charset=UTF-8"))
-  (concatenate
-   'string
-   (ps:ps
-     (defvar loader)
-     (defvar autocomplete-list)
-     (defvar autocomplete-data)
-     ((@ (*YUI*) use)
-      "node-base" "io-base" "io-form" "io-queue"
-      (lambda (y)
-        (defun make-student-row ()
-          (let* ((table ((@ document get-element-by-id) "ergebnisse"))
-                 (num (length (@ table rows)))
-                 (row ((@ table insert-row) num)))
-            (let* ((cell ((@ row insert-cell) 0))
-                   (input ((@ document create-element) "input"))
-                   (completion ((@ document create-element) "div")))
-              ((@ input set-attribute) "type" "text")
-              ((@ completion set-attribute) "class" "autocomplete")
-              ((@ cell append-child) input)
-              ((@ cell append-child) completion)
-              (ps:new ((@ *autocompleter *local)
-                       input
-                       completion
-                       autocomplete-list
-                       (ps:create "fullSearch" t))))            
-            (let* ((cell ((@ row insert-cell) 1))
-                   (input ((@ document create-element) "input")))
-              ((@ input set-attribute) "type" "text")
-              ((@ input set-attribute) "maxlength" "3")
-              ((@ input set-attribute) "size" "3")
-              ((@ cell append-child) input))))
+  (handle-static-file (relpath "logikorr.js")))
 
-        ((@ y on) "domready" make-student-row))))
-   (format nil "~%autocompleteList = ~A"
-           (json:encode-json-to-string (mapcar (lambda (x) (unsplit-name (student-first-name x) (student-last-name x)))
-                                               (find-students))))))
+(define-easy-handler (logikorr-completion-data.js :uri "/logikorr-completion-data.js") ()
+  (ignore-errors (setf (header-out :content-type) "text/javascript; charset=UTF-8"))
+  (format nil "~%autocompleteList = ~A"
+          (json:encode-json-to-string (mapcar (lambda (x) (unsplit-name (student-first-name x) (student-last-name x)))
+                                              (find-students)))))
 
 
 (define-easy-handler (style.css :uri "/style.css") ()
