@@ -12,6 +12,8 @@
 (defvar *database* #p"/Users/mulk/Dropbox/Projekte/Logikorr/blatt3.txt")
 (defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
 
+(defparameter *in-locked-context-p* nil)
+
 #+(or)
 (defun create-student-id ()
   (1+ (reduce #'max (find-students) :key #'student-id :initial-value -1)))
@@ -23,36 +25,41 @@
   `(call-with-data-lock (lambda () ,@body)))
 
 (defun call-with-data-lock (thunk)
-  (let (lock)
-    (unwind-protect
-        (progn
-          (loop until (setq lock (open *lock* :direction :output :if-exists nil :if-does-not-exist :create)))
-          (funcall thunk))
-      (progn (ignore-errors (delete-file *lock*))
-             (ignore-errors (close lock))))))
+  (cond (*in-locked-context-p*
+         (funcall thunk))
+        (t
+         (let (lock)
+           (unwind-protect
+               (progn
+                 (loop until (setq lock (open *lock* :direction :output :if-exists nil :if-does-not-exist :create)))
+                 (let ((*in-locked-context-p* t)) (funcall thunk)))
+             (progn (ignore-errors (delete-file *lock*))
+                    (ignore-errors (close lock))))))))
 
 
 (defun find-students ()
   (with-data-lock ()
-    (with-open-file (in *database* :external-format :utf-8)
-      (loop for line = (read-line in nil nil nil)
-            with id = 0
-            while line
-            unless (equal (remove #\Space line) "")
-              collect (let* ((name line)
-                             (score-line (read-line in t))
-                             (score (read-from-string score-line))
-                             (comma (position #\, name))
-                             (last-name (if comma (subseq name 0 comma) nil))
-                             (first-name (if comma (subseq name (+ comma 2)) name)))
-                        (make-student :id id
-                                      :score (make-array (list (length score))
-                                                         :initial-contents score
-                                                         :adjustable t
-                                                         :fill-pointer t)
-                                      :last-name last-name
-                                      :first-name first-name))
-              and do (incf id)))))
+    (setq
+     *students*
+     (with-open-file (in *database* :external-format :utf-8)
+       (loop for line = (read-line in nil nil nil)
+             with id = 0
+             while line
+             unless (equal (remove #\Space line) "")
+               collect (let* ((name line)
+                              (score-line (read-line in t))
+                              (score (read-from-string score-line))
+                              (comma (position #\, name))
+                              (last-name (if comma (subseq name 0 comma) nil))
+                              (first-name (if comma (subseq name (+ comma 2)) name)))
+                         (make-student :id id
+                                       :score (make-array (list (length score))
+                                                          :initial-contents score
+                                                          :adjustable t
+                                                          :fill-pointer t)
+                                       :last-name last-name
+                                       :first-name first-name))
+               and do (incf id))))))
 
 (define-easy-handler (show-main-page :uri "/") ()
   (let ((students (find-students)))
