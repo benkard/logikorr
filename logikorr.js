@@ -10,6 +10,7 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
             input.value = value;
         }
         cell.appendChild(input);
+        Y.on("keyup", function(e) { ensureFreeInput(cell); }, input, Y);
         return input;
     };
 
