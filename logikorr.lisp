@@ -9,6 +9,9 @@
   (last-name "" :type (or string null))
   (first-name "" :type (or string null)))
 
+(defvar *database* #p"/Users/mulk/Dropbox/Projekte/Logikorr/blatt3.txt")
+(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
+
 #+(or)
 (defun create-student-id ()
   (1+ (reduce #'max (find-students) :key #'student-id :initial-value -1)))
@@ -16,26 +19,40 @@
 (setq *hunchentoot-default-external-format*
       (flexi-streams:make-external-format :utf-8))
 
+(defmacro with-data-lock (() &body body)
+  `(call-with-data-lock (lambda () ,@body)))
+
+(defun call-with-data-lock (thunk)
+  (let (lock)
+    (unwind-protect
+        (progn
+          (loop until (setq lock (open *lock* :direction :output :if-exists nil :if-does-not-exist :create)))
+          (funcall thunk))
+      (progn (ignore-errors (delete-file *lock*))
+             (ignore-errors (close lock))))))
+
+
 (defun find-students ()
-  (with-open-file (in "/Users/mulk/Dropbox/Projekte/Logikorr/blatt3.txt" :external-format :utf-8)
-    (loop for line = (read-line in nil nil nil)
-          with id = 0
-          while line
-          unless (equal (remove #\Space line) "")
-            collect (let* ((name line)
-                           (score-line (read-line in t))
-                           (score (read-from-string score-line))
-                           (comma (position #\, name))
-                           (last-name (if comma (subseq name 0 comma) nil))
-                           (first-name (if comma (subseq name (+ comma 2)) name)))
-                      (make-student :id id
-                                    :score (make-array (list (length score))
-                                                       :initial-contents score
-                                                       :adjustable t
-                                                       :fill-pointer t)
-                                    :last-name last-name
-                                    :first-name first-name))
-            and do (incf id))))
+  (with-data-lock ()
+    (with-open-file (in *database* :external-format :utf-8)
+      (loop for line = (read-line in nil nil nil)
+            with id = 0
+            while line
+            unless (equal (remove #\Space line) "")
+              collect (let* ((name line)
+                             (score-line (read-line in t))
+                             (score (read-from-string score-line))
+                             (comma (position #\, name))
+                             (last-name (if comma (subseq name 0 comma) nil))
+                             (first-name (if comma (subseq name (+ comma 2)) name)))
+                        (make-student :id id
+                                      :score (make-array (list (length score))
+                                                         :initial-contents score
+                                                         :adjustable t
+                                                         :fill-pointer t)
+                                      :last-name last-name
+                                      :first-name first-name))
+              and do (incf id)))))
 
 (define-easy-handler (show-main-page :uri "/") ()
   (let ((students (find-students)))
@@ -173,14 +190,15 @@ div.autocomplete ul li {
 
 (define-easy-handler (update-student-score :uri "/update-student-score")
     (id score-number score)
-  (let ((student (find-student-by-id (parse-integer id)))
-        (index   (parse-integer score-number)))
-    (loop while (<= (length (student-score student)) index)
-          do (vector-push-extend 0 (student-score student)))
-    (setf (elt (student-score student) index)
-          (let ((*read-eval* nil))
-            (let ((score (read-from-string score)))
-              (check-type score number)))))
+  (with-data-lock ()
+    (let ((student (find-student-by-id (parse-integer id)))
+          (index   (parse-integer score-number)))
+      (loop while (<= (length (student-score student)) index)
+            do (vector-push-extend 0 (student-score student)))
+      (setf (elt (student-score student) index)
+            (let ((*read-eval* nil))
+              (let ((score (read-from-string score)))
+                (check-type score number))))))
   "\"OK\"")
 
 (define-easy-handler (add-student-score :uri "/add-student-score")
