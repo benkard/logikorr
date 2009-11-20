@@ -27,6 +27,8 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         Y.log(nameInput);
         Y.log(scoreCell);
         function doUpdate(id, o, args) {
+            ensureFreeStudentRow();
+
             var data = o.responseText;
             try {
                 var student = Y.JSON.parse(data);
@@ -69,6 +71,19 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         makeScoreInput(cell);
 
         Y.on("blur", updateStudentRowFromName, input, Y, input, cell);
+
+        return row;
+    };
+
+    function ensureFreeStudentRow() {
+        var table = document.getElementById('ergebnisse')
+        var num = table.rows.length;
+        var input = table.rows[num - 1].cells[0].firstChild;
+        if (!(input.value == undefined || input.value == "")) {
+            return makeStudentRow();
+        } else {
+            return table.lastChild;
+        }
     };
 
     return Y.on('domready', makeStudentRow);
