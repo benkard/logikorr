@@ -9,16 +9,12 @@
   (last-name "" :type (or string null))
   (first-name "" :type (or string null)))
 
-(defvar *database* #p"/Users/mulk/Dropbox/Projekte/Logikorr/blatt3.txt")
-(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
-
-(defvar *students* nil)
-
+(defparameter *directory* "/Users/mulk/Dropbox/Projekte/Logikorr/")
 (defparameter *in-locked-context-p* nil)
 
-#+(or)
-(defun create-student-id ()
-  (1+ (reduce #'max (find-students) :key #'student-id :initial-value -1)))
+(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
+(defvar *students* nil)
+(defvar *database* (merge-pathnames "blatt3.txt"))
 
 (setq *hunchentoot-default-external-format*
       (flexi-streams:make-external-format :utf-8))
@@ -67,7 +63,6 @@
   (let ((students (find-students)))
     (ignore-errors (setf (header-out :content-type) "text/html; charset=UTF-8"))
     (with-yaclml-output-to-string
-     ;;with-yaclml-stream *hunchentoot-stream*
       (<:html
        (<:head
         (<:title "Logik I: Korrekturergebnisse")
@@ -135,7 +130,7 @@ div.autocomplete ul li {
 }")
 
 (defun relpath (path)
-  (merge-pathnames path (make-pathname :directory "/Users/mulk/Dropbox/Projekte/Logikorr")))
+  (merge-pathnames path (make-pathname :directory *directory*)))
 
 (define-easy-handler (s1.js :uri "/js/builder.js") ()
   (handle-static-file (relpath "js/builder.js")))
@@ -166,11 +161,6 @@ div.autocomplete ul li {
 
 (define-easy-handler (s10.js :uri "/js/unittest.js") ()
   (handle-static-file (relpath "js/unittest.js")))
-
-#+(or)
-(define-easy-handler (save-student :uri "/save-student")
-    (id score surname firstname)
-  )
 
 (defun unsplit-name (first last)
   (if last
