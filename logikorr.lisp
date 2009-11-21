@@ -1,5 +1,5 @@
 (defpackage :logikorr-ht
-  (:use #:hunchentoot #:common-lisp #:json #:yaclml #:split-sequence #:xml-emitter))
+  (:use #:hunchentoot #:common-lisp #:json #:yaclml))
 
 (in-package #:logikorr-ht)
 
