@@ -12,9 +12,9 @@
 (defparameter *directory* "/Users/mulk/Dropbox/Projekte/Logikorr/")
 (defparameter *in-locked-context-p* nil)
 
-(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
 (defvar *students* nil)
-(defvar *database* (merge-pathnames "blatt3.txt"))
+(defvar *database* (merge-pathnames "blatt3.txt" *directory*))
+(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
 
 (setq *hunchentoot-default-external-format*
       (flexi-streams:make-external-format :utf-8))
