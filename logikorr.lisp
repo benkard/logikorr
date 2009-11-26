@@ -27,8 +27,10 @@
 
 (defun find-and-initialise-database ()
   (let* ((files (directory (merge-pathnames #p"*.txt" *database-directory*)))
-         (files-by-write-date (sort files #'> :key #'file-write-date)))
-    (setq *database* (first files-by-write-date))))
+         (sorted-files (sort files #'>
+                             :key (lambda (x)
+                                    (parse-integer (pathname-name x))))))
+    (setq *database* (first sorted-files))))
 
 (defun make-new-revision ()
   (find-and-initialise-database)
