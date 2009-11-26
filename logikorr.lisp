@@ -9,12 +9,13 @@
   (last-name "" :type (or string null))
   (first-name "" :type (or string null)))
 
-(defparameter *directory* "/Users/mulk/Dropbox/Projekte/Logikorr/")
+(defparameter *directory* #p"/Users/mulk/Dropbox/Projekte/Logikorr/")
 (defparameter *in-locked-context-p* nil)
 
 (defvar *students* nil)
-(defvar *database* (merge-pathnames "blatt3.txt" *directory*))
-(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
+(defvar *database* nil)
+(defvar *database-directory* (merge-pathnames #p"data/" *directory*))
+(defvar *lock* (merge-pathnames #p".mulk-db-lock" *database-directory*))
 
 (defvar *password-file* (merge-pathnames #p"password.txt" *directory*))
 (defvar *password*
@@ -23,6 +24,11 @@
 
 (setq *hunchentoot-default-external-format*
       (flexi-streams:make-external-format :utf-8))
+
+(defun find-and-initialise-database ()
+  (let* ((files (directory (merge-pathnames #p"*.txt" *database-directory*)))
+         (files-by-write-date (sort files #'> :key #'file-write-date)))
+    (setq *database* (first files-by-write-date))))
 
 (defmacro with-authentication (() &body body)
   `(call-with-authentication (lambda () ,@body)))
@@ -52,6 +58,7 @@
 
 
 (defun find-students ()
+  (find-and-initialise-database)
   (with-data-lock ()
     (setq
      *students*
@@ -149,7 +156,7 @@ div.autocomplete ul li {
 }")
 
 (defun relpath (path)
-  (merge-pathnames path (make-pathname :directory *directory*)))
+  (merge-pathnames path *directory*))
 
 (define-easy-handler (s1.js :uri "/js/builder.js") ()
   (handle-static-file (relpath "js/builder.js")))
@@ -224,6 +231,7 @@ div.autocomplete ul li {
   "\"OK\"")
 
 (defun write-database ()
+  (find-and-initialise-database)
   (with-data-lock ()
     (unless *students*
       (return-from write-database))
