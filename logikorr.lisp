@@ -16,6 +16,11 @@
 (defvar *database* (merge-pathnames "blatt3.txt" *directory*))
 (defvar *lock* (merge-pathnames #p".mulk-db-lock" *database*))
 
+(defvar *password-file* (merge-pathnames #p"password.txt" *directory*))
+(defvar *password*
+    (with-open-file (in *password-file* :direction :input)
+      (read-line in)))
+
 (setq *hunchentoot-default-external-format*
       (flexi-streams:make-external-format :utf-8))
 
@@ -25,7 +30,7 @@
 (defun call-with-authentication (thunk)
   (multiple-value-bind (name password)
       (authorization)
-    (if (and (string= name "test") (string= password "test"))
+    (if (and (string= name "logik") (string= password *password*))
         (funcall thunk)
         (progn
           (require-authorization "Logik-Ergebniseingabe")))))
