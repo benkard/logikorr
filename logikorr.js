@@ -1,6 +1,17 @@
 var loader;
 var autocompleteList;
-YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
+YUI().use('node', 'node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
+    function registerMakeRevisionAction() {
+        var button = Y.one("#make-revision");
+        button.on("click", function(e) {
+            Y.io("make-new-revision",
+                 { 'on': { 'complete': function(id, o, args) {
+                             Y.log("Neue Version: " + o.responseText);
+                             Y.one("#new-version-label").set("innerText", "Gesichert. Neue Version: " + o.responseText + ".");
+                           } } });
+        });
+    }
+
     function markAsChanged(input) {
         input.setAttribute("style", "background-color: #faa");
     }
@@ -116,5 +127,6 @@ YUI().use('node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
         }
     };
 
-    return Y.on('domready', makeStudentRow);
+    Y.on('domready', registerMakeRevisionAction);
+    Y.on('domready', makeStudentRow);
 });

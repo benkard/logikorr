@@ -40,7 +40,8 @@
                                     *database*)))
     (find-students)
     (write-database-to-file new-path)
-    (setq *database* new-path)))
+    (setq *database* new-path)
+    (1+ number)))
 
 (defmacro with-authentication (() &body body)
   `(call-with-authentication (lambda () ,@body)))
@@ -113,6 +114,7 @@
          (<:body
           (<:h1 "Logik I: Korrekturergebnisse")
           (<:h2 "Neue Ergebnisse")
+          (<:form (<:button :type "button" :id "make-revision" (<:as-html "Aktuelle Version sichern")) (<:div :id "new-version-label" :style "display: inline; color: #070"))
           (<:table :id "ergebnisse")
           (<:h2 "Bestehende Ergebnisse")
           (<:table
@@ -241,6 +243,11 @@ div.autocomplete ul li {
                   score))))
       (write-database)))
   "\"OK\"")
+
+(define-easy-handler (create-new-revision :uri "/make-new-revision")
+    ()
+  (with-authentication ()
+    (format nil "~D" (make-new-revision))))
 
 (defun write-database ()
   (find-and-initialise-database)
