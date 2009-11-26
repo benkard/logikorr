@@ -227,7 +227,7 @@ div.autocomplete ul li {
         (if (student-last-name student)
             (format out "~&~A, ~A" (student-last-name student) (student-first-name student))
             (format out "~&~A" (student-first-name student)))
-        (format out "~&~A" (coerce (student-score student) 'list))
+        (format out "~&(~{~3S~^ ~} )" (coerce (student-score student) 'list))
         (format out "~%~%")))))
 
 (defun start-logikorr ()
