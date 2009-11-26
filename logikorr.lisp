@@ -30,6 +30,16 @@
          (files-by-write-date (sort files #'> :key #'file-write-date)))
     (setq *database* (first files-by-write-date))))
 
+(defun make-new-revision ()
+  (find-and-initialise-database)
+  (let* ((name (pathname-name *database*))
+         (number (parse-integer name))
+         (new-path (merge-pathnames (make-pathname :name (format nil "~D" (1+ number)))
+                                    *database*)))
+    (find-students)
+    (write-database-to-file new-path)
+    (setq *database* new-path)))
+
 (defmacro with-authentication (() &body body)
   `(call-with-authentication (lambda () ,@body)))
 
@@ -232,10 +242,13 @@ div.autocomplete ul li {
 
 (defun write-database ()
   (find-and-initialise-database)
+  (write-database-to-file *database*))
+
+(defun write-database-to-file (file)
   (with-data-lock ()
     (unless *students*
-      (return-from write-database))
-    (with-open-file (out *database* :external-format :utf-8 :direction :output :if-exists :new-version #+(or) :supersede)
+      (return-from write-database-to-file))
+    (with-open-file (out file :external-format :utf-8 :direction :output :if-exists :new-version #+(or) :supersede)
       (dolist (student *students*)
         (if (student-last-name student)
             (format out "~&~A, ~A" (student-last-name student) (student-first-name student))
