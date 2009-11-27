@@ -1,3 +1,5 @@
+;;; Copyright 2009, Matthias Andreas Benkard.
+
 (defpackage :logikorr-ht
   (:use #:hunchentoot #:common-lisp #:json #:yaclml))
 

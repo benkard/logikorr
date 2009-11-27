@@ -1,3 +1,5 @@
+;;; Copyright 2009, Matthias Andreas Benkard.
+
 (defsystem logikorr
   :name "logikorr"
   :version "0.0.1"

@@ -1,3 +1,5 @@
+// Copyright 2009, Matthias Andreas Benkard.
+
 var loader;
 var autocompleteList;
 YUI().use('node', 'node-base', 'io-base', 'io-form', 'io-queue', 'json', function (Y) {
