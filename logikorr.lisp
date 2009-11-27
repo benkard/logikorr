@@ -11,7 +11,7 @@
   (last-name "" :type (or string null))
   (first-name "" :type (or string null)))
 
-(defparameter *directory* #p"/Users/mulk/Dropbox/Projekte/Logikorr/")
+(defparameter *directory* (asdf:component-pathname (asdf:find-system '#:logikorr)))
 (defparameter *in-locked-context-p* nil)
 
 (defvar *students* nil)
