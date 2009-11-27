@@ -1,7 +1,7 @@
 ;;; Copyright 2009, Matthias Andreas Benkard.
 
 (defpackage :logikorr-ht
-  (:use #:hunchentoot #:common-lisp #:json #:yaclml))
+  (:use #:hunchentoot #:common-lisp #:json #:cl-who))
 
 (in-package #:logikorr-ht)
 
@@ -101,33 +101,35 @@
   (with-authentication ()
     (let ((students (find-students)))
       (ignore-errors (setf (header-out :content-type) "text/html; charset=UTF-8"))
-      (with-yaclml-output-to-string
-        (<:html
-         (<:head
-          (<:title "Logik I: Korrekturergebnisse")
-          (<:script :type "text/javascript"
-                    :src "js/prototype.js")
-          (<:script :type "text/javascript"
-                    :src "js/scriptaculous.js")
-          (<:link :type "text/css" :rel "stylesheet" :href "style.css")
-          (<:script :type "text/javascript" :src "http://yui.yahooapis.com/3.0.0/build/yui/yui-min.js")
-          (<:script :type "text/javascript" :src "logikorr.js")
-          (<:script :type "text/javascript" :src "logikorr-completion-data.js"))
-         (<:body
-          (<:h1 "Logik I: Korrekturergebnisse")
-          (<:h2 "Neue Ergebnisse")
-          (<:form (<:button :type "button" :id "make-revision" (<:as-html "Aktuelle Version sichern")) (<:div :id "new-version-label" :style "display: inline; color: #070"))
-          (<:table :id "ergebnisse")
-          (<:h2 "Bestehende Ergebnisse")
-          (<:table
-           (<:tr
-            (<:th "ID") (<:th "Punkte") (<:th "Nachname") (<:th "Vorname"))
+      (with-html-output-to-string (html)
+        (:html
+         (:head
+          (:title "Logik I: Korrekturergebnisse")
+          (:script :type "text/javascript"
+                   :src "js/prototype.js")
+          (:script :type "text/javascript"
+                   :src "js/scriptaculous.js")
+          (:link :type "text/css" :rel "stylesheet" :href "style.css")
+          (:script :type "text/javascript" :src "http://yui.yahooapis.com/3.0.0/build/yui/yui-min.js")
+          (:script :type "text/javascript" :src "logikorr.js")
+          (:script :type "text/javascript" :src "logikorr-completion-data.js"))
+         (:body
+          (:h1 "Logik I: Korrekturergebnisse")
+          (:h2 "Neue Ergebnisse")
+          (:form (:button :type "button" :id "make-revision"
+                  (esc "Aktuelle Version sichern"))
+                 (:div :id "new-version-label" :style "display: inline; color: #070"))
+          (:table :id "ergebnisse")
+          (:h2 "Bestehende Ergebnisse")
+          (:table
+           (:tr
+            (:th "ID") (:th "Punkte") (:th "Nachname") (:th "Vorname"))
            (dolist (student students)
              (with-slots (id score last-name first-name) student
-                (<:tr (<:td (<:as-html id))
-                      (<:td (<:as-html score))
-                      (<:td (<:as-html last-name))
-                      (<:td (<:as-html first-name))))))))))))
+                (htm (:tr (:td (str id))
+                          (:td (str score))
+                          (:td (esc last-name))
+                          (:td (esc first-name)))))))))))))
 
 
 (define-easy-handler (logikorr.js :uri "/logikorr.js") ()

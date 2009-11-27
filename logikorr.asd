@@ -7,5 +7,5 @@
   :author "Matthias Benkard <code@matthias.benkard.de>"
   :licence ""
   :description "Ein einfaches Bewertungsaufnahmesystem"
-  :depends-on (:yaclml :hunchentoot :cl-json)
+  :depends-on (:cl-who :hunchentoot :cl-json)
   :components ((:file "logikorr")))
