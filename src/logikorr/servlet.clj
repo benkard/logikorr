@@ -141,26 +141,27 @@
         (ds/create (assoc (dissoc student :key) :kind "student") (:key new)))
       (str (:number new)))))
 
+(defn call-with-authentication [thunk]
+  (let [users (UserServiceFactory/getUserService)
+        user (.getCurrentUser users)]
+    (if (and user
+             (some #(= user %) #{"mulkiatsch@gmail.com"
+                                 "gpmfuchs@gmx.de"
+                                 "kilian@fachschaften.uni-muenchen.de"
+                                 "schwicht@mathematik.uni-muenchen.de"}))
+      (thunk)
+      (redirect-to (.createLoginURL users "/")))))
+
+(defmacro with-authentication [& body]
+  `(call-with-authentication (fn [] ~@body)))
+
 (defroutes logikorr
-  (GET "/*" (let [users (UserServiceFactory/getUserService)
-                  user (.getCurrentUser users)]
-              (if (and user
-                       (some #(= user %) #{"mulkiatsch@gmail.com"
-                                           "gpmfuchs@gmx.de"
-                                           "kilian@fachschaften.uni-muenchen.de"
-                                           "schwicht@mathematik.uni-muenchen.de"}))
-                :next
-                (html [:html
-                       [:head [:title "Access denied."]]
-                       [:body
-                        [:h1 "Access denied."]
-                        [:p "You do not have access to this application."]]]))))
-  (GET "/" index)
+  (GET "/" (with-authentication (index request)))
   (GET "/favicon.ico" (do nil))
-  (GET "/logikorr-completion-data.js" (compute-completion-data-js))
-  (GET "/find-student" (find-student-json (:name params)))
-  (GET "/update-student-score" (update-student-score (:id params) (:score-number params) (:score params)))
-  (GET "/make-new-revision" (make-new-revision))
+  (GET "/logikorr-completion-data.js" (with-authentication (compute-completion-data-js)))
+  (GET "/find-student" (with-authentication (find-student-json (:name params))))
+  (GET "/update-student-score" (with-authentication (update-student-score (:id params) (:score-number params) (:score params))))
+  (GET "/make-new-revision" (with-authentication (make-new-revision)))
   (GET "/*"
     (or (serve-file *static-directory* (params :*)) :next))
   (ANY "/*" (page-not-found)))
