@@ -126,7 +126,8 @@
           num (Integer. score-number)]
       (ds-update (assoc student
                    :score (concat (take num score)
-                                  [(Float. new-score-value)]
+                                  [(binding [*read-eval* false]
+                                     (read-string new-score-value))]
                                   (drop (+ 1 num) score)))))
     "\"OK\""))
 
