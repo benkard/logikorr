@@ -6,6 +6,23 @@
   (:import [com.google.appengine.api.datastore DatastoreServiceFactory Entity Query Query$FilterOperator Query$SortDirection KeyFactory EntityNotFoundException Key]
            [com.google.appengine.api.users UserServiceFactory]))
 
+(defmacro with-ds-transaction [& body]
+  `(call-with-ds-transaction (fn [] ~@body)))
+
+(defn call-with-ds-transaction [thunk]
+  (let [ds (DatastoreServiceFactory/getDatastoreService)
+        success (atom false)
+        transaction (.beginTransaction ds)
+        return-value (atom nil)]
+    (try (do
+           (swap! return-value (fn [_] (thunk)))
+           (.commit transaction)
+           (swap! success (fn [_] true)))
+         (finally
+          (when-not @success
+            (.rollback transaction))))
+    @return-value))
+
 (defn ds-update
   "Update the corresponding entity from the supplied map in the data store."
   [map]
