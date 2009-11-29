@@ -1,6 +1,6 @@
 <!-- Taken in large parts from: http://github.com/duelinmarkers/guestbook-clj -->
 
-<project name="logikorr" basedir="." default="compile">
+<project name="logikorr" basedir="." default="test">
 
   <property environment="env" />
   <property name="sdk.dir" location="/Users/mulk/Programme/Google App Engine for Java SDK" />
