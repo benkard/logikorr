@@ -2,7 +2,7 @@
 ;;; Copyright Robin Brandt, freiheit.com.
 
 (ns logikorr-jetty
-  (:use logikorr)
+  (:use logikorr.servlet)
   (:use compojure.server.jetty compojure.http compojure.control))
 
 (defmacro with-app-engine

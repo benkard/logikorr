@@ -56,6 +56,7 @@
   </target>
 
   <target name="test" description="Run the unit tests." depends="compile">
+    <mkdir dir="${test.dir}" />
     <java classname="clojure.main" classpathref="project.classpath" fork="true" failonerror="true" dir="${test.dir}">
       <classpath path="${test.dir}" />
       <arg value="-e" />
