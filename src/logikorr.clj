@@ -120,14 +120,15 @@
                          :last-name (:last-name student)})))
 
 (defn update-student-score [id score-number new-score-value]
-  (let [student (find-student-by-id id)
-        score (:score student)
-        num (Integer. score-number)]
-    (ds-update (assoc student
-                 :score (concat (take num score)
-                                [(Float. new-score-value)]
-                                (drop (+ 1 num) score)))))
-  "\"OK\"")
+  (with-ds-transaction
+    (let [student (find-student-by-id id)
+          score (:score student)
+          num (Integer. score-number)]
+      (ds-update (assoc student
+                   :score (concat (take num score)
+                                  [(Float. new-score-value)]
+                                  (drop (+ 1 num) score)))))
+    "\"OK\""))
 
 (defn make-new-revision []
   (with-ds-transaction
