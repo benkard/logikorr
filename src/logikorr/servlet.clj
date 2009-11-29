@@ -52,10 +52,8 @@
         nil))))
 
 (defn split-name [name]
-  (let [n (position name \,)]
-    (if n
-      [(apply str (drop (+ n 2) name)) (apply str (take n name))]
-      [name ""])))
+  (let [[last first] (.split name ",")]
+    [(and first (.trim first)) (and last (.trim last))]))
 
 (defn find-student-by-name [name]
   (let [[first-name last-name] (split-name name)]
@@ -98,12 +96,17 @@
               [:td (str score)]
               [:td last-name]
               [:td first-name]]))
-         students)]]])))
+         students)]
+       [:h2 "Daten importieren"]
+       [:form {:method "POST" :action "/import-score-file"}
+        [:textarea {:name "file-data" :cols "80" :rows "20"}]
+        [:br]
+        [:input {:type "submit"}]]]])))
 
 (defn unsplit-name [first last]
-  (if last
+  (if first
     (str last ", " first)
-    first))
+    last))
 
 (defn compute-completion-data-js []
   (str "autocompleteList = "
@@ -153,6 +156,26 @@
       (thunk)
       (redirect-to (.createLoginURL users "/")))))
 
+(defn import-score-file [data]
+  (loop [lines (.split data "\n")]
+    (let [line (first lines)]
+      (when line
+        (if (= (.trim line) "")
+          (recur (rest lines))
+          (let [name line
+                score-string (second lines)
+                score (binding [*read-eval* false] (read-string score-string))
+                student (find-student-by-name name)
+                [first-name last-name] (split-name name)]
+            (if student
+              (ds-update (assoc student :score score))
+              (ds/create {:last-name last-name
+                          :first-name first-name
+                          :score score
+                          :kind "student"}
+                         (:key (current-revision))))
+            (recur (rest (rest lines)))))))))
+
 (defmacro with-authentication [& body]
   `(call-with-authentication (fn [] ~@body)))
 
@@ -163,6 +186,9 @@
   (GET "/find-student" (with-authentication (find-student-json (:name params))))
   (GET "/update-student-score" (with-authentication (update-student-score (:id params) (:score-number params) (:score params))))
   (GET "/make-new-revision" (with-authentication (make-new-revision)))
+  (POST "/import-score-file" (with-authentication
+                               (import-score-file (:file-data params))
+                               (redirect-to "/")))
   (GET "/*"
     (or (serve-file *static-directory* (params :*)) :next))
   (ANY "/*" (page-not-found)))
