@@ -25,12 +25,15 @@
 
 (defn ds-update
   "Update the corresponding entity from the supplied map in the data store."
-  [map]
-  (let [datastore (DatastoreServiceFactory/getDatastoreService),
-        entity (.get datastore #^Key (:key map))]
-    (doseq [[key value] (dissoc map :kind :key)]
-      (.setProperty entity (name key) value))
-    (.put datastore entity)))
+  [& entity-maps]
+  (let [datastore (DatastoreServiceFactory/getDatastoreService)]
+    (.put datastore
+          (map (fn [entity-map]
+                 (let [entity (.get datastore #^Key (:key entity-map))]
+                   (doseq [[key value] (dissoc entity-map :kind :key)]
+                     (.setProperty entity (name key) value))
+                   entity))
+               entity-maps))))
 
 (def *static-directory* "/Users/mulk/Dropbox/Projekte/LogiCLJ/war")
 
