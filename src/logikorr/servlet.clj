@@ -142,6 +142,19 @@
       (str (:number new)))))
 
 (defroutes logikorr
+  (GET "/*" (let [users (UserServiceFactory/getUserService)
+                  user (.getCurrentUser users)]
+              (if (and user
+                       (some #(= user %) #{"mulkiatsch@gmail.com"
+                                           "gpmfuchs@gmx.de"
+                                           "kilian@fachschaften.uni-muenchen.de"
+                                           "schwicht@mathematik.uni-muenchen.de"}))
+                :next
+                (html [:html
+                       [:head [:title "Access denied."]]
+                       [:body
+                        [:h1 "Access denied."]
+                        [:p "You do not have access to this application."]]]))))
   (GET "/" index)
   (GET "/favicon.ico" (do nil))
   (GET "/logikorr-completion-data.js" (compute-completion-data-js))
