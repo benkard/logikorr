@@ -129,7 +129,15 @@
                                 (drop (+ 1 num) score)))))
   "\"OK\"")
 
-(defn create-new-revision [])
+(defn make-new-revision []
+  (with-ds-transaction
+    (let [current (current-revision)
+          students (find-students)
+          new (ds/create {:kind "revision"
+                          :number (inc (:number current))})]
+      (doseq [student students]
+        (ds/create (assoc (dissoc student :key) :kind "student") (:key new)))
+      (str (:number new)))))
 
 (defroutes logikorr
   (GET "/" index)
@@ -137,7 +145,7 @@
   (GET "/logikorr-completion-data.js" (compute-completion-data-js))
   (GET "/find-student" (find-student-json (:name params)))
   (GET "/update-student-score" (update-student-score (:id params) (:score-number params) (:score params)))
-  (GET "/create-new-revision" (create-new-revision))
+  (GET "/make-new-revision" (make-new-revision))
   (GET "/*"
     (or (serve-file *static-directory* (params :*)) :next))
   (ANY "/*" (page-not-found)))
