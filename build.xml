@@ -1,0 +1,76 @@
+<!-- Taken in large parts from: http://github.com/duelinmarkers/guestbook-clj -->
+
+<project name="logikorr" basedir="." default="compile">
+
+  <property environment="env" />
+  <property name="sdk.dir" location="/Users/mulk/Programme/Google App Engine for Java SDK" />
+  <property name="classes.dir" value="war/WEB-INF/classes" />
+  <property name="lib.dir" value="war/WEB-INF/lib" />
+  <property name="src.dir" value="src" />
+  <property name="test.dir" value="test" />
+  <property name="devlib.dir" value="/Users/mulk/Downloads/Git" />
+  <property name="clojure.dir" value="${devlib.dir}/clojure" />
+  <property name="clojure_contrib.dir" value="${devlib.dir}/clojure-contrib" />
+  <property name="compojure.dir" value="${devlib.dir}/compojure" />
+  <property name="appengine_clj.dir" value="${devlib.dir}/appengine-clj" />
+  <property name="clojure_json.dir" value="${devlib.dir}/clojure-json" />
+
+  <import file="${sdk.dir}/config/user/ant-macros.xml"/>
+
+  <path id="project.classpath">
+    <pathelement path="${classes.dir}" />
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${sdk.dir}/lib">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+
+  <target name="clean">
+    <delete dir="${classes.dir}" />
+  </target>
+
+  <target name="init">
+    <mkdir dir="${classes.dir}" />
+  </target>
+
+  <target name="copyjars">
+    <copy file="${sdk.dir}/lib/user/appengine-api-1.0-sdk-1.2.2.jar" todir="${lib.dir}" />
+    <copy file="${compojure.dir}/compojure.jar" todir="${lib.dir}" />
+    <copy file="${appengine_clj.dir}/appengine-clj.jar" todir="${lib.dir}" />
+    <copy file="${clojure.dir}/clojure.jar" todir="${lib.dir}" />
+    <copy file="${clojure_contrib.dir}/clojure-contrib.jar" todir="${lib.dir}" />
+    <copy file="${clojure_json.dir}/clojure-json.jar" todir="${lib.dir}" />
+    <copy todir="${lib.dir}">
+      <filelist dir="${compojure.dir}/deps" files="commons-fileupload-1.2.1.jar commons-io-1.4.jar commons-codec-1.3.jar" />
+    </copy>   
+  </target>
+
+  <target name="compile" depends="clean,init,copyjars">
+    <java classname="clojure.lang.Compile" classpathref="project.classpath" failonerror="true">
+      <classpath path="${src.dir}" />
+      <sysproperty key="clojure.compile.path" value="${classes.dir}" />
+      <arg value="logikorr.servlet" />
+    </java>
+  </target>
+
+  <target name="test" description="Run the unit tests." depends="compile">
+    <java classname="clojure.main" classpathref="project.classpath" fork="true" failonerror="true" dir="${test.dir}">
+      <classpath path="${test.dir}" />
+      <arg value="-e" />
+      <arg value="(use 'clojure.contrib.test-is)
+                  (require 'logikorr.tests)
+                  (run-tests 'logikorr.tests)" />
+    </java>
+  </target>
+
+  <target name="devserver" description="Run the local development webserver."  depends="compile,test">
+    <dev_appserver war="war" />
+  </target>
+
+  <target name="deploy" description="Deploy to AppSpot."  depends="compile,test">
+    <appcfg action="update" war="war" />
+  </target>
+</project>
+ 

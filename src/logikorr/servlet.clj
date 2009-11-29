@@ -1,4 +1,4 @@
-(ns logikorr
+(ns logikorr.servlet
   (:gen-class :extends javax.servlet.http.HttpServlet)
   (:use compojure.http compojure.html)
   (:require [appengine-clj.datastore :as ds]
