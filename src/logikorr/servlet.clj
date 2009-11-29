@@ -145,10 +145,11 @@
   (let [users (UserServiceFactory/getUserService)
         user (.getCurrentUser users)]
     (if (and user
-             (some #(= user %) #{"mulkiatsch@gmail.com"
-                                 "gpmfuchs@gmx.de"
-                                 "kilian@fachschaften.uni-muenchen.de"
-                                 "schwicht@mathematik.uni-muenchen.de"}))
+             (some #(= (.getEmail user) %)
+                   #{"mulkiatsch@gmail.com"
+                     "gpmfuchs@gmx.de"
+                     "kilian@fachschaften.uni-muenchen.de"
+                     "schwicht@mathematik.uni-muenchen.de"}))
       (thunk)
       (redirect-to (.createLoginURL users "/")))))
 
