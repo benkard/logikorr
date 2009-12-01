@@ -43,7 +43,9 @@
       (ds/create {:kind "revision" :number 0})))
 
 (defn find-students []
-  (ds/find-all (doto (Query. "student" (:key (current-revision))))))
+  (ds/find-all (doto (Query. "student" (:key (current-revision)))
+                 (.addSort "last-name")
+                 (.addSort "first-name"))))
 
 (defn position [coll thing]
   (loop [i 0,
