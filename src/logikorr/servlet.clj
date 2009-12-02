@@ -93,6 +93,7 @@
         [:div#mail-sent-label {:style "display: inline; color: #070"}]]
        [:table#ergebnisse]
        [:h2 "Bestehende Ergebnisse"]
+       [:a {:href "/logik.txt"} "(Als Text anzeigen.)"]
        [:table
         [:tr
          [:th "ID"] [:th "Punkte"] [:th "Nachname"] [:th "Vorname"]]
@@ -240,6 +241,9 @@ Logikorr")))
   (GET "/update-student-score" (with-authentication (update-student-score (:id params) (:score-number params) (:score params))))
   (GET "/make-new-revision" (with-authentication (make-new-revision)))
   (GET "/send-mail" (with-authentication (send-mail)))
+  (GET "/logik.txt" [{:headers {"Content-Type" "text/plain"}}
+                     (with-authentication
+                       (encode-database-file))])
   (POST "/import-score-file" (with-authentication
                                (import-score-file (:file-data params))
                                (redirect-to "/")))
