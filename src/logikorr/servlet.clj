@@ -228,7 +228,8 @@ Logikorr")))
                          ;;                    ()))
                          (.setFileName "logik.txt")
                          (.setDisposition "attachment"))))))
-    (Transport/send message)))
+    (Transport/send message)
+    "\"OK\""))
 
 (defmacro with-authentication [& body]
   `(call-with-authentication (fn [] ~@body)))
