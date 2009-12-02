@@ -4,7 +4,10 @@
   (:require [appengine-clj.datastore :as ds]
             [org.danlarkin.json :as json])
   (:import [com.google.appengine.api.datastore DatastoreServiceFactory Entity Query Query$FilterOperator Query$SortDirection KeyFactory EntityNotFoundException Key]
-           [com.google.appengine.api.users UserServiceFactory]))
+           [com.google.appengine.api.users UserServiceFactory]
+           [java.util Properties]
+           [javax.mail Message Message$RecipientType MessagingException Session Transport]
+           [javax.mail.internet AddressException InternetAddress MimeMessage MimeMultipart MimeUtility MimeBodyPart]))
 
 (defmacro with-ds-transaction [& body]
   `(call-with-ds-transaction (fn [] ~@body)))
@@ -86,6 +89,8 @@
        [:h2 "Neue Ergebnisse"]
        [:form [:button#make-revision {:type "button"} "Aktuelle Version sichern"]
         [:div#new-version-label {:style "display: inline; color: #070"}]]
+       [:form [:button#send-mail {:type "button"} "Datei an die Korrektoren schicken"]
+        [:div#mail-sent-label {:style "display: inline; color: #070"}]]
        [:table#ergebnisse]
        [:h2 "Bestehende Ergebnisse"]
        [:table
@@ -186,6 +191,44 @@
                          (:key (current-revision))))
             (recur (rest (rest lines)))))))))
 
+(defn encode-database-file []
+  (with-out-str
+    (let [students (find-students)]
+      (doseq [student students]
+        (printf "%s\n" (unsplit-name (:first-name student) (:last-name student)))
+        (printf "(")
+        (doseq [score (:score student)]
+          (printf "%-3s " (str score)))
+        (printf ")\n\n")))))
+
+(defn send-mail []
+  (let [props (Properties.)
+        session (Session/getDefaultInstance props nil)
+        message (MimeMessage. session)
+        users (ds/find-all (Query. "user"))]
+    (doseq [user users]
+      (.addRecipient message
+                     Message$RecipientType/TO
+                     (InternetAddress. (:email user) (:email user))))
+    (doto message
+      (.setFrom (InternetAddress. "mulkiatsch@gmail.com" "Logikorr"))
+      (.setSubject "Logik-Korrekturergebnisse")
+      (.setContent
+       (doto (MimeMultipart.)
+         (.addBodyPart (doto (MimeBodyPart.)
+                         (.setText "Anbei die jüngsten Korrekturergebnisse.
+
+Automatisch erzeugte Grüße,
+Logikorr")))
+         (.addBodyPart (doto (MimeBodyPart.)
+                         ;;(.setText (encode-database-file))
+                         (.setContent (encode-database-file) "text/plain")
+                         ;; (.setDataHandler (doto (DataSource.)
+                         ;;                    ()))
+                         (.setFileName "logik.txt")
+                         (.setDisposition "attachment"))))))
+    (Transport/send message)))
+
 (defmacro with-authentication [& body]
   `(call-with-authentication (fn [] ~@body)))
 
@@ -196,6 +239,7 @@
   (GET "/find-student" (with-authentication (find-student-json (:name params))))
   (GET "/update-student-score" (with-authentication (update-student-score (:id params) (:score-number params) (:score params))))
   (GET "/make-new-revision" (with-authentication (make-new-revision)))
+  (GET "/send-mail" (with-authentication (send-mail)))
   (POST "/import-score-file" (with-authentication
                                (import-score-file (:file-data params))
                                (redirect-to "/")))

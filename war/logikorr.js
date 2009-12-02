@@ -14,6 +14,21 @@ YUI().use('node', 'node-base', 'io-base', 'io-form', 'io-queue', 'json', functio
         });
     }
 
+    function registerSendMailAction() {
+        var button = Y.one("#send-mail");
+        button.on("click", function(e) {
+            Y.io("send-mail",
+                 { 'on': { 'complete': function(id, o, args) {
+                             Y.log("E-Mail verschickt: " + o.responseText);
+                             if (o.responseText == "\"OK\"") {
+                                 Y.one("#mail-sent-label").set("innerText", "E-Mail verschickt.");
+                             } else {
+                                 Y.one("#mail-sent-label").set("innerText", "Fehler: " + o.responseText);
+                             }
+                           } } });
+        });
+    }
+
     function markAsChanged(input) {
         input.setAttribute("style", "background-color: #faa");
     }
