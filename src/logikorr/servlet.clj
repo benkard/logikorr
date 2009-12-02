@@ -38,7 +38,7 @@
                    entity))
                entity-maps))))
 
-(def *static-directory* "/Users/mulk/Dropbox/Projekte/LogiCLJ/war")
+(def *static-directory* "/Users/mulk/Dropbox/Projekte/Logikorr/war")
 
 (defn current-revision []
   (or (first (ds/find-all (doto (Query. "revision")
@@ -94,7 +94,7 @@
        [:table#ergebnisse]
        [:h2 "Bestehende Ergebnisse"]
        [:a {:href "/logik.txt"} "(Als Text anzeigen.)"]
-       [:table
+       [:table.score-table {:border "1"}
         [:tr
          [:th "ID"] [:th "Punkte"] [:th "Nachname"] [:th "Vorname"]]
         (map
@@ -104,7 +104,10 @@
                  student]
              [:tr
               [:td (str id)]
-              [:td (str score)]
+              [:td (map (fn [num]
+                          (html [:span {:style "min-width: 2em; display: inline-block;"} num]
+                                " "))
+                        score)]
               [:td last-name]
               [:td first-name]]))
          students)]
