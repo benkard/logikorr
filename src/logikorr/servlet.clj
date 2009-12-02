@@ -144,9 +144,16 @@
     (let [current (current-revision)
           students (find-students)
           new (ds/create {:kind "revision"
-                          :number (inc (:number current))})]
-      (doseq [student students]
-        (ds/create (assoc (dissoc student :key) :kind "student") (:key new)))
+                          :number (inc (:number current))})
+          new-key (:key new)
+          datastore (DatastoreServiceFactory/getDatastoreService)]
+      (.put datastore
+            (map (fn [student]
+                   (doto (Entity. "student" #^Key new-key)
+                     (.setProperty "first-name" (:first-name student))
+                     (.setProperty "last-name" (:last-name student))
+                     (.setProperty "score" (:score student))))
+                 students))
       (str (:number new)))))
 
 (defn call-with-authentication [thunk]
