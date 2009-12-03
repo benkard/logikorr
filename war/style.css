@@ -33,3 +33,14 @@ table.score-table {
 table.score-table td {
   padding: 5px 5px 5px 5px;
 }
+
+.score-group {
+  border: 1px solid gray;
+  padding: 2px 2px 2px 2px;
+  margin-left: 5px; margin-right: 5px;
+  background-color: #eee;
+}
+.score-entry {
+  min-width: 2em;
+  display: inline-block;
+}
