@@ -104,13 +104,12 @@
                  student]
              [:tr
               [:td (str id)]
-              [:td (mapcat (fn [nums]
-                             (html
-                              [:span.score-group {}
-                               (map (fn [num]
-                                      (html [:span.score-entry num]
-                                            " "))
-                                    nums)]))
+              [:td (map (fn [nums]
+                          [:span.score-group {}
+                           (map (fn [num]
+                                  (list [:span.score-entry num]
+                                        " "))
+                                nums)])
                            (partition 4 4 [] score))]
               [:td last-name]
               [:td first-name]]))
