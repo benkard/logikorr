@@ -29,9 +29,12 @@ div.autocomplete ul li {
 table.score-table {
   border-collapse: collapse;
   border-spacing: 0;
+  border-width: 2px;
+  border: 3px solid #000;
 }
-table.score-table td {
-  padding: 5px 5px 5px 5px;
+table.score-table td, th {
+  padding: 10px 10px 10px 10px;
+  border: 2px solid #bbb;
 }
 
 .score-group {
