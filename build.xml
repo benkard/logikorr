@@ -3,7 +3,7 @@
 <project name="logikorr" basedir="." default="test">
 
   <property environment="env" />
-  <property name="sdk.dir" location="/Users/mulk/Programme/Google App Engine for Java SDK" />
+  <property name="sdk.dir" location="/Users/mulk/Programme/AppEngine-Java-SDK" />
   <property name="classes.dir" value="war/WEB-INF/classes" />
   <property name="lib.dir" value="war/WEB-INF/lib" />
   <property name="src.dir" value="src" />
