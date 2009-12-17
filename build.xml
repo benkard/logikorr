@@ -36,7 +36,7 @@
   </target>
 
   <target name="copyjars">
-    <copy file="${sdk.dir}/lib/user/appengine-api-1.0-sdk-1.2.6.jar" todir="${lib.dir}" />
+    <copy file="${sdk.dir}/lib/user/appengine-api-1.0-sdk-1.3.0.jar" todir="${lib.dir}" />
     <copy file="${compojure.dir}/compojure.jar" todir="${lib.dir}" />
     <copy file="${appengine_clj.dir}/appengine-clj.jar" todir="${lib.dir}" />
     <copy file="${clojure.dir}/clojure.jar" todir="${lib.dir}" />
